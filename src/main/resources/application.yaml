@@ -1,3 +1,14 @@
 spring:
   application:
     name: auth
+  datasource:
+    url: jdbc:mariadb://localhost:3306/auth_database
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true

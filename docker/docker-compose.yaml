@@ -1,0 +1,9 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: auth_database
+    ports:
+      - "3306:3306"
