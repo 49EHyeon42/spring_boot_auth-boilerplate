@@ -8,10 +8,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
@@ -25,12 +27,14 @@ public class SecurityConfig {
                 // 필요 시 cors 설정
                 // sessionCreationPolicy default = SessionCreationPolicy.IF_REQUIRED
                 .sessionManagement(httpSecuritySessionManagementConfigurer ->
-                        httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        httpSecuritySessionManagementConfigurer
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                                .sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::none))
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
                                 .requestMatchers(HttpMethod.POST, "/api/v1/sign-in").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/sign-up").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/users/me").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
                                 .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
@@ -43,7 +47,8 @@ public class SecurityConfig {
                                 .deleteCookies("JSESSIONID")
                                 .logoutSuccessHandler((request, response, authentication) ->
                                         response.setStatus(HttpServletResponse.SC_OK)))
-                .formLogin(AbstractHttpConfigurer::disable);
+                .formLogin(AbstractHttpConfigurer::disable)
+                .addFilterBefore(new SessionAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
