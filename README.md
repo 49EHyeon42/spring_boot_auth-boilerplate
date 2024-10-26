@@ -15,3 +15,11 @@
 로그인 후 세션을 받고, 인증이 필요한 엔드포인트에 접근하면 새로운 세션이 접근하는 것을 확인했다. 디버깅 과정을 통해 `SessionAuthorizationFilter`에서 `SecurityContextHolder`에 `Authentication` 구현체를 담으면 새로운 세션이 생성되는 것을 확인했다. `SecurityConfig`의 `securityFilterChain`에 `sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::none)`을 추가함으로써 위 문제를 해결하려 했다.
 
 `sessionFixation()`에 대한 정보를 탐색 중 `sessionFixation()`을 비활성화(`none`)하는 것은 세션 고정 공격을 당할 수 있기 때문에 좋지 않은 선택이라고 알게 되었고, 보일러플레이트 코드에 기본값을 적용했다.
+
+#### 세션에 사용자 아이디, Authentication 구현체 저장 고민
+
+`HttpSession`에 Long 타입의 사용자 아이디를 저장할지, 또는 `Authentication` 구현체를 저장할지를 두고 고민했다.
+
+사용자 아이디만 저장할 경우, 인증이 필요한 요청마다 데이터베이스에서 사용자 아이디를 기반으로 권한을 조회해야 한다. 반면, `Authentication` 구현체를 저장하면 데이터베이스 조회 없이 세션 내에서 직접 권한을 확인할 수 있다. 다만, 권한이 변경될 경우 해당 사용자와 관련된 세션을 찾아 권한을 갱신해야 한다.
+
+권한을 데이터베이스에 저장하고, 세션을 인-메모리에 저장한다고 가정할 때, `Authentication` 구현체에서 권한을 조회하는 것이 더 빠르고, Long 타입의 사용자 아이디를 저장할 때 보다 조금 더 많은 메모리를 사용할 것이다. 인증을 요구하는 API의 호출 빈도가 높고, 권한 변경은 상대적으로 드물다고 판단했기 때문에, `Authentication` 구현체를 세션에 저장하는 방식이 서버 부하를 줄이는 데 유리할 것이라 생각한다.
