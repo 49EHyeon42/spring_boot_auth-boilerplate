@@ -53,7 +53,7 @@ public class SecurityConfig {
                                         response.setStatus(HttpServletResponse.SC_OK)))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new SessionSignInFilter(objectMapper, authenticationManager), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new SessionAuthenticationFilter(customUserDetailsService), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new SessionAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }

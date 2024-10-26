@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 public class SessionSignInFilter extends OncePerRequestFilter {
 
@@ -39,11 +41,13 @@ public class SessionSignInFilter extends OncePerRequestFilter {
         CustomAuthenticationToken customAuthenticationToken = new CustomAuthenticationToken(signInRequest.username(), signInRequest.password());
 
         try {
-            Authentication authenticate = authenticationManager.authenticate(customAuthenticationToken);
+            Authentication authentication = authenticationManager.authenticate(customAuthenticationToken);
 
-            if (authenticate.isAuthenticated()) {
+            if (authentication.isAuthenticated()) {
                 HttpSession session = request.getSession(true);
-                session.setAttribute("userId", authenticate.getPrincipal());
+
+                session.setAttribute("userId", Long.parseLong(authentication.getPrincipal().toString()));
+                session.setAttribute("userAuthorities", authentication.getAuthorities());
 
                 response.setStatus(HttpServletResponse.SC_OK);
             } else {

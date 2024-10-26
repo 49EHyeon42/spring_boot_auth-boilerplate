@@ -21,11 +21,4 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return new CustomUserDetails(userEntity);
     }
-
-    public UserDetails loadUserById(Long id) {
-        UserEntity userEntity = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("USERNAME_NOT_FOUND"));
-
-        return new CustomUserDetails(userEntity);
-    }
 }

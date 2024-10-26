@@ -8,28 +8,26 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collection;
 
 @Slf4j
 @RequiredArgsConstructor
 public class SessionAuthenticationFilter extends OncePerRequestFilter {
-
-    private final CustomUserDetailsService customUserDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         HttpSession httpSession = request.getSession(false);
 
         if (httpSession != null) {
-            Long userId = Long.parseLong(httpSession.getAttribute("userId").toString());
+            Long userId = (long) httpSession.getAttribute("userId");
+            Collection<? extends GrantedAuthority> userAuthorities = (Collection<? extends GrantedAuthority>) httpSession.getAttribute("userAuthorities");
 
-            UserDetails userDetails = customUserDetailsService.loadUserById(userId);
-
-            Authentication authentication = new CustomAuthenticationToken(Long.parseLong(userDetails.getUsername()), userDetails.getAuthorities());
+            Authentication authentication = new CustomAuthenticationToken(userId, userAuthorities);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
