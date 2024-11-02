@@ -34,6 +34,26 @@
 
 `AuthenticationProvider`는 스프링 컨테이너에서 관리되는 `UserDetailsService`를 사용하므로 `AuthenticationProvider` 또한 스프링 컨테이너로 관리하는 것이 바람직하다고 생각해 `@Component` 어노테이션으로 등록했다. 이를 통해 `SecurityConfig`에 `UserDetailsService`를 주입하지 않게 되었다. 다만 `SessionAuthenticationFilter`는 `AuthenticationManager`를 주입 받으나 순환 참조가 발생해 `new` 키워드로 등록했다.
 
+#### 다중 세션 제어 문제 발생
+
+스프링에서 다음과 같이 설정해 다중 세션을 설정할 수 있다.
+
+```java
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, AuthenticationManager authenticationManager) throws Exception {
+        httpSecurity
+                // 필요 시 cors 설정
+                .sessionManagement(httpSecuritySessionManagementConfigurer ->
+                        httpSecuritySessionManagementConfigurer
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                                .maximumSessions(1)
+                                .sessionRegistry(new SessionRegistryImpl())) // 생략 가능
+    // 생략
+```
+
+문제가 발생했다, 세션 생성 정책을 `SessionCreationPolicy.STATELESS`로 설정하고, maximumSessions()을 설정하면 정상적으로 동작하는 것을 확인했지만, 다중 세션 제어가 인증 필터보다 후순위에서 이루어져 원하는 동작이 발생하지 않는다. 다중 세션에 대한 처리는 `SessionManagementFilter`에서 이루어진다. A에서 로그인하고, B에서 로그인할 때 A에서 인증이 필요한 작업 시 바로 401을 반환해야 하지만, 컨트롤러 진입 없이 200 응답 후 다음 응답에서 403을 응답한다. "세션에 사용자 권한 저장 고민"에 대한 고민과 더불어 세션에 무엇을 저장할지, 다중 세션을 어떻게 관리할지 고민이 더 필요하다. 별도의 설정을 하지 않았다면 다중 세션 제어는 `ConcurrentSessionControlAuthenticationStrategy` 클래스의 `allowableSessionsExceeded()` 메서드에서 이루어진다.
+
 ## Reference
 
 - [스프링 시큐리티 인 액션](https://product.kyobobook.co.kr/detail/S000061695014)
