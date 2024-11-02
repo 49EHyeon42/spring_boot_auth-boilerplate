@@ -1,5 +1,6 @@
 package dev.ehyeon.auth.config;
 
+import dev.ehyeon.auth.global.ErrorCode;
 import dev.ehyeon.auth.user.entity.UserEntity;
 import dev.ehyeon.auth.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity userEntity = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("USERNAME_NOT_FOUND"));
+                .orElseThrow(() -> new UsernameNotFoundException(ErrorCode.USERNAME_NOT_FOUND.getMessage()));
 
         return new CustomUserDetails(userEntity);
     }

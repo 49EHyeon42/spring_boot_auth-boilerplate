@@ -1,5 +1,6 @@
 package dev.ehyeon.auth.config;
 
+import dev.ehyeon.auth.global.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,7 +24,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException("BAD_CREDENTIALS");
+            throw new BadCredentialsException(ErrorCode.BAD_CREDENTIALS.getMessage());
         }
 
         // userDetails.getUsername() is userId
