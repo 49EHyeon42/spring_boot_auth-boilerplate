@@ -10,10 +10,10 @@ public class CustomAuthenticationToken extends AbstractAuthenticationToken {
     private final Object principal;
     private final Object credentials;
 
-    public CustomAuthenticationToken(Object principal, Object credentials) {
+    public CustomAuthenticationToken(Object principal) {
         super(null);
         this.principal = principal;
-        this.credentials = credentials;
+        this.credentials = null;
         setAuthenticated(false);
     }
 

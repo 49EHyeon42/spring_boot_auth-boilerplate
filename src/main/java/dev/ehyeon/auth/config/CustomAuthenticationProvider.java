@@ -1,34 +1,26 @@
 package dev.ehyeon.auth.config;
 
-import dev.ehyeon.auth.global.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RequiredArgsConstructor
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     private final UserDetailsService userDetailsService;
-    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String username = authentication.getName();
-        String password = authentication.getCredentials().toString();
+        // Long to String userId
+        String userId = authentication.getName();
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
 
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException(ErrorCode.BAD_CREDENTIALS.getMessage());
-        }
-
-        // userDetails.getUsername() is userId
-        return new CustomAuthenticationToken(userDetails.getUsername(), userDetails.getAuthorities());
+        // String to Long userId
+        return new CustomAuthenticationToken(Long.parseLong(userDetails.getUsername()), userDetails.getAuthorities());
     }
 
     @Override

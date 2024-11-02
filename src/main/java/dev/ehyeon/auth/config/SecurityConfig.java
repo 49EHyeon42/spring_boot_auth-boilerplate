@@ -1,6 +1,5 @@
 package dev.ehyeon.auth.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +25,6 @@ public class SecurityConfig {
 
     private final HandlerMappingIntrospector introspector;
     private final CustomUserDetailsService customUserDetailsService;
-    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, AuthenticationManager authenticationManager) throws Exception {
@@ -52,8 +50,7 @@ public class SecurityConfig {
                                 .logoutSuccessHandler((request, response, authentication) ->
                                         response.setStatus(HttpServletResponse.SC_OK)))
                 .formLogin(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new SessionSignInFilter(mvcRequestMatcher(HttpMethod.POST, "/api/v1/sign-in"), objectMapper, authenticationManager), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new SessionAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new SessionAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
@@ -67,7 +64,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity httpSecurity) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = httpSecurity.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.authenticationProvider(new CustomAuthenticationProvider(customUserDetailsService, passwordEncoder()));
+        authenticationManagerBuilder.authenticationProvider(new CustomAuthenticationProvider(customUserDetailsService));
         return authenticationManagerBuilder.build();
     }
 
