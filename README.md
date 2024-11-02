@@ -27,3 +27,13 @@
 ##### 세션의 사용자 권한 변경에 대한 추가 고민
 
 현재 코드의 경우 톰캣 내장 메모리에 세션을 저장한다. 조금 더 자세하게 말하면 ManagerBase 클래스에 `ConcurrentHashMap<>()`으로 세션 객체를 저장한다. 톰캣 내장 메모리 세션 저장소는 모든 세션을 조회하거나 특정 사용자와 관련된 세션을 조회하는 기능을 제공하지 않는 것을 확인했다. 즉, 사용자의 권한이 변경되었을 때 세션의 권한을 변경할 수 없다. 다른 방법이 필요하다.
+
+#### AuthenticationProvider, Filter 빈 등록
+
+`AuthenticationProvider`와 `Filter` 사용에서 `new` 키워드 그리고 스프링 컨테이너에 등록해 사용할지 고민이 있었다. 스프링 컨테이너에 포함된 객체를 주입 받는다면 의존성 관리와 생명주기를 이유로 `AuthenticationProvider`, `Filter` 또한 스프링 컨테이너로 관리하는 것이 좋겠다고 생각했다.
+
+`AuthenticationProvider`는 스프링 컨테이너에서 관리되는 `UserDetailsService`를 사용하므로 `AuthenticationProvider` 또한 스프링 컨테이너로 관리하는 것이 바람직하다고 생각해 `@Component` 어노테이션으로 등록했다. 이를 통해 `SecurityConfig`에 `UserDetailsService`를 주입하지 않게 되었다. 다만 `SessionAuthenticationFilter`는 `AuthenticationManager`를 주입 받으나 순환 참조가 발생해 `new` 키워드로 등록했다.
+
+## Reference
+
+- [스프링 시큐리티 인 액션](https://product.kyobobook.co.kr/detail/S000061695014)
