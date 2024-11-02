@@ -8,24 +8,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-@Slf4j
 @RequiredArgsConstructor
 public class SessionSignInFilter extends OncePerRequestFilter {
 
-    private final RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/v1/sign-in", HttpMethod.POST.name());
-
+    private final RequestMatcher requestMatcher;
     private final ObjectMapper objectMapper;
     private final AuthenticationManager authenticationManager;
 
@@ -62,7 +57,7 @@ public class SessionSignInFilter extends OncePerRequestFilter {
         return requestMatcher.matches(request);
     }
 
-    public SignInRequest getSignInRequest(HttpServletRequest request) throws IOException {
+    private SignInRequest getSignInRequest(HttpServletRequest request) throws IOException {
         String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
 
         return objectMapper.readValue(requestBody, SignInRequest.class);

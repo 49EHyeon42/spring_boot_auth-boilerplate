@@ -52,7 +52,7 @@ public class SecurityConfig {
                                 .logoutSuccessHandler((request, response, authentication) ->
                                         response.setStatus(HttpServletResponse.SC_OK)))
                 .formLogin(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new SessionSignInFilter(objectMapper, authenticationManager), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new SessionSignInFilter(mvcRequestMatcher(HttpMethod.POST, "/api/v1/sign-in"), objectMapper, authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new SessionAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
