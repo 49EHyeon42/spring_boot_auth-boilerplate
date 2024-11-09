@@ -54,6 +54,30 @@
 
 문제가 발생했다, 세션 생성 정책을 `SessionCreationPolicy.STATELESS`로 설정하고, maximumSessions()을 설정하면 정상적으로 동작하는 것을 확인했지만, 다중 세션 제어가 인증 필터보다 후순위에서 이루어져 원하는 동작이 발생하지 않는다. 다중 세션에 대한 처리는 `SessionManagementFilter`에서 이루어진다. A에서 로그인하고, B에서 로그인할 때 A에서 인증이 필요한 작업 시 바로 401을 반환해야 하지만, 컨트롤러 진입 없이 200 응답 후 다음 응답에서 403을 응답한다. "세션에 사용자 권한 저장 고민"에 대한 고민과 더불어 세션에 무엇을 저장할지, 다중 세션을 어떻게 관리할지 고민이 더 필요하다. 별도의 설정을 하지 않았다면 다중 세션 제어는 `ConcurrentSessionControlAuthenticationStrategy` 클래스의 `allowableSessionsExceeded()` 메서드에서 이루어진다.
 
+## Token Authentication
+
+토큰 인증에 대한 보일러플레이트를 작성하고 있다.
+access token만 사용할 때 access token을 전달하는 방법에 대한 고려가 필요하다.
+
+첫번째 전달 방법으로 쿠키에 담는 방법과 응답 본문에 담는 방법이 있다.
+쿠키로 전달한다면 `HttpOnly`와 `Secure` 속성을 활성화해 XSS(Cross Site Scripting) 공격을 방어할 수 있다.
+다만, CSRF(Cross Site Request Forgery) 공격에 취약할 수 있으므로 스프링 시큐리티에서 기본적으로 활성화된 CSRF 토큰을 사용하거나 `SameSite` 속성을 설정이 필요하다.
+
+응답 본문으로 전달하는 경우, `Authorization` 헤더를 통해 access token을 전달 받을 수 있다.
+프록시같은 중간 매개체가 있는 경우, access token이 노출될 수 있다.
+
+또한, 웹 브라우저를 사용한다면 응답 본문에 담는 방법을 고려해 볼 수 있다.
+응답 본문으로 전달하고, access token을 메모리에 저장해 XSS 공격으로부터 비교적 안전하게 사용할 수 있다.
+다만, 페이지 새로고침 시 access token이 사라진다.
+
+refresh token을 사용하는 경우, access token과 refresh token 모두 쿠키에 저장하는 방법과 access token은 메모리에 refresh token을 쿠키에 전달하는 방법을 생각해 볼 수 있다.
+이는 서버의 인증 로직에 따라 다르게 선택할 수 있을 것 같다.
+쿠키/쿠키를 적용한다면 access token 만료 시 바로 refresh token을 통해 만료된 access token을 교체할 수 있다.
+다만, 항상 refresh token이 서버에 전달된다.
+메모리/쿠키 방법을 선택한다면, 클라이언트에서 `credentials: 'include'`를 통해 refresh token을 필요할 때만 전달할 수 있다.
+
+토큰에 권한을 저장하는 것은 동기화 때문에 고민 중이다.
+
 ## Reference
 
 - [스프링 시큐리티 인 액션](https://product.kyobobook.co.kr/detail/S000061695014)
