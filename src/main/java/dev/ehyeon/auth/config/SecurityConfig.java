@@ -1,12 +1,9 @@
 package dev.ehyeon.auth.config;
 
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,10 +21,10 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 public class SecurityConfig {
 
     private final HandlerMappingIntrospector introspector;
-    private final CustomAuthenticationProvider customAuthenticationProvider;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, AuthenticationManager authenticationManager) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 // 필요 시 cors 설정
                 .sessionManagement(httpSecuritySessionManagementConfigurer ->
@@ -40,17 +37,9 @@ public class SecurityConfig {
                                 .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .logout(httpSecurityLogoutConfigurer ->
-                        httpSecurityLogoutConfigurer
-                                .clearAuthentication(true)
-                                .invalidateHttpSession(true)
-                                .logoutRequestMatcher(mvcRequestMatcher(HttpMethod.POST, "/api/v1/sign-out"))
-                                .permitAll()
-                                .deleteCookies("JSESSIONID")
-                                .logoutSuccessHandler((request, response, authentication) ->
-                                        response.setStatus(HttpServletResponse.SC_OK)))
+                .logout(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new SessionAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
@@ -58,14 +47,8 @@ public class SecurityConfig {
     private MvcRequestMatcher mvcRequestMatcher(HttpMethod httpMethod, String pattern) {
         MvcRequestMatcher mvcRequestMatcher = new MvcRequestMatcher(introspector, pattern);
         mvcRequestMatcher.setMethod(httpMethod);
-        return mvcRequestMatcher;
-    }
 
-    @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity httpSecurity) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder = httpSecurity.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider);
-        return authenticationManagerBuilder.build();
+        return mvcRequestMatcher;
     }
 
     @Bean

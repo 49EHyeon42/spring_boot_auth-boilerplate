@@ -9,8 +9,6 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
     // Spring Security Error Code
-    USERNAME_NOT_FOUND(HttpStatus.UNAUTHORIZED, "USERNAME_NOT_FOUND"),
-    BAD_CREDENTIALS(HttpStatus.UNAUTHORIZED, "BAD_CREDENTIALS"),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN"),
 
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "NOT_FOUND_USER"),
