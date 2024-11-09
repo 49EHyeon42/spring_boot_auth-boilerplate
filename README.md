@@ -77,6 +77,7 @@ refresh token을 사용하는 경우, access token과 refresh token 모두 쿠�
 메모리/쿠키 방법을 선택한다면, 클라이언트에서 `credentials: 'include'`를 통해 refresh token을 필요할 때만 전달할 수 있다.
 
 토큰에 권한을 저장하는 것은 동기화 때문에 고민 중이다.
+권한이 자주 변경되는 경우, 토큰에 권한을 담지 않고, 인증이 필요한 API를 사용할 때 마다 DB에 접근하는 방식이 좋을 것이다.
 
 ## Reference
 
